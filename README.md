@@ -1,139 +1,46 @@
 # FALL_DAMAGE.exe
 
-A browser-based rage platformer disguised as a hostile operating system.
+> "The floor is not your friend."
 
-Built for frontend-only AI web hackathons with one goal: make players say "one more try."
+A browser-based precision platformer disguised as a hostile, decaying operating system. 
+Built with one psychological goal: make you say *"one more try"* while the game actively disrespects your efforts.
 
 ## What This Is
 
-`FALL_DAMAGE.exe` is a cinematic precision platformer where:
+`FALL_DAMAGE.exe` is a cinematic rage platformer where the world gaslights you, the UI insults you, and the only way out is up.
 
-- movement is tight and skill-based
-- retries are instant
-- the UI taunts the player in real time
-- fake checkpoints, fake victory, and system-style misdirection create emotional spikes
+It prioritizes:
+- **Flawless Movement Feel:** Coyote time, jump buffering, wall slides, and instant retries.
+- **Psychological Tension:** Fake checkpoints, manufactured crashes, disappearing platforms, and live telemetry that tracks your "suffering."
+- **Immersive Audio:** Procedural synthesis, rhythmic footstep impacts, dynamic tension sequencers, and Shepard tone escalations that rise as you climb.
 
-This project prioritizes:
+## The Ascent (Core Features)
 
-1. movement feel
-2. responsivenesshttp://localhost:5173/
-3. emotional reactions
-4. polish and demo quality
+You are climbing a massive vertical tower separated into distinct emotional phases:
 
-## Tech Stack
-
-- React + Vite + TypeScript
-- Phaser 3 (gameplay and physics)
-- TailwindCSS (UI styling)
-- Framer Motion (HUD and cinematic transitions)
-- Zustand (lightweight game-to-UI state bridge)
+- **TRUST PHASE:** Relax, learn the controls, get lied to.
+- **TENSION:** Safe jumps are now a rumor.
+- **DECEPTION:** The level starts gaslighting back.
+- **BETRAYAL:** Victory screens are traps now.
+- **PRECISION:** Every input gets audited.
+- **FINALE:** One last insult before the end.
 
 ## Controls
 
 - `A / D` - Move
 - `SPACE / W` - Jump
 - `S` - Fast Fall
-- `R` - Retry
+- `R` - Instant Retry
 
-## Core Features (Current Build)
+*(Controller support is for the weak. Use your keyboard.)*
 
-- precision platforming vertical slice
-- coyote time + jump buffer
-- wall slide + wall jump
-- tuned acceleration/deceleration and air control
-- instant death + respawn loop
-- fake terminal HUD with live telemetry
-- section progression and checkpoint tracking
-- cinematic overlays (fake crash/fake victory/fake corruption flow)
+## Telemetry Feedback
 
-## Project Structure
+The right-side terminal monitors your state:
+- **RAGE LOAD:** Increases as you die and progress.
+- **SHELL INTEGRITY:** Drops as the environment degrades.
+- **INCIDENT RECORD:** A live feed of the system mocking your specific failures.
 
-```text
-src/
-  components/
-  game/
-    audio/
-      index.ts
-    effects/
-      index.ts
-    levels/
-      index.ts
-    scenes/
-      BootScene.ts
-      GameScene.ts
-      UIScene.ts
-      MenuScene.ts
-      DeathScene.ts
-      EndingScene.ts
-    systems/
-      MovementController.ts
-      LevelFactory.ts
-      CameraEffects.ts
-      TrollManager.ts
-      ...
-    traps/
-      index.ts
-    config.ts
-    GameManager.ts
-  store/
-    gameUiStore.ts
-  App.tsx
-  index.css
-```
+---
 
-## Local Development
-
-### 1) Install
-
-```bash
-npm install
-```
-
-### 2) Run Dev Server
-
-```bash
-npm run dev
-```
-
-### 3) Production Build
-
-```bash
-npm run build
-```
-
-### 4) Preview Build
-
-```bash
-npm run preview
-```
-
-## Gameplay Design Notes
-
-- Difficulty comes from timing, precision, and expectation subversion.
-- Mechanics are deterministic and skill-based (no random unfair physics).
-- The world intentionally manipulates player trust through UI and level scripting.
-- Content scope stays small on purpose: one highly polished vertical slice beats wide unfinished content.
-
-## Hackathon Demo Pitch (Short)
-
-"It's a frontend-only rage platformer where the game pretends to be a dying OS. Movement is tight, retries are instant, and the interface actively trolls the player with fake wins, fake saves, and betrayal moments."
-
-## Next Improvements
-
-- add layered audio design (drone, impact bass, glitch stingers)
-- tighten camera drama (impact zoom, transition framing)
-- optimize bundle splitting for smaller initial load
-- add a final polished ending sequence variant
-
-## GitHub Push Checklist
-
-- Ensure the app builds: `npm run build`
-- Optional lint check: `npm run lint`
-- Commit all source + config files (do not commit `node_modules` or `dist`)
-- Push your branch:
-
-```bash
-git add .
-git commit -m "chore: organize game folders and polish project docs"
-git push -u origin <your-branch>
-```
+*fall_damage.exe is working as intended.*

@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { movementConfig } from '../config'
+import { movementConfig } from '../core/config'
 import { audioManager } from './AudioManager'
 
 type MovementDependencies = {
@@ -33,6 +33,7 @@ export class MovementController {
   private wasOnFloor = false
   private wasWallSliding = false
   private lastFallSpeed = 0
+  private footstepTimer = 0
   private onLand?: (impactSpeed: number) => void
   private onJump?: () => void
   private onWallSlideStart?: () => void
@@ -60,9 +61,20 @@ export class MovementController {
     if (onFloor && !this.wasOnFloor) {
       audioManager.playLand()
       this.onLand?.(this.lastFallSpeed)
+      this.footstepTimer = 0
     }
     this.wasOnFloor = onFloor
     this.lastFallSpeed = Math.max(0, this.body.velocity.y)
+
+    if (onFloor && moveInput !== 0) {
+      this.footstepTimer -= dtMs
+      if (this.footstepTimer <= 0) {
+        audioManager.playFootstep()
+        this.footstepTimer = 220
+      }
+    } else {
+      this.footstepTimer = 0
+    }
 
     this.coyoteTimer = onFloor ? movementConfig.coyoteTimeMs : Math.max(0, this.coyoteTimer - dtMs)
     if (touchingLeft) {

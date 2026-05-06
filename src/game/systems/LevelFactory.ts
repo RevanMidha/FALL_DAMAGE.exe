@@ -12,7 +12,7 @@ import {
   SPIKE_COLOR,
   WALL_COLOR,
   CHECKPOINT_COLOR,
-} from '../config'
+} from '../core/config'
 import { TrollManager } from './TrollManager'
 
 export type MovingPlatform = {
@@ -30,6 +30,8 @@ export type LevelBuildOutput = {
   movingPlatforms: MovingPlatform[]
   fakeVictoryRevealPlatforms: { platform: Phaser.GameObjects.Rectangle; edge: Phaser.GameObjects.Rectangle }[]
   fakeVictoryRevealSigns: Phaser.GameObjects.Text[]
+  upperWorldFog: Phaser.GameObjects.Rectangle
+  upperWorldFogLabel: Phaser.GameObjects.Text
   fakeVictoryZone: Phaser.GameObjects.Zone
   fakeCrashZone: Phaser.GameObjects.Zone
   realEndZone: Phaser.GameObjects.Zone
@@ -43,11 +45,25 @@ function addPlatform(
   trollManager?: TrollManager,
   disappearing = false,
   collapseDelay = 500,
+  pulseEdge = false,
 ) {
   const platform = scene.add.rectangle(x, y, w, h, PLATFORM_COLOR, 1)
   const edge = scene.add.rectangle(x, y - h / 2 + 1, w, 2, PLATFORM_EDGE_COLOR, PLATFORM_EDGE_ALPHA)
   scene.physics.add.existing(platform, true)
   solids.add(platform as unknown as Phaser.Physics.Arcade.Image)
+
+  // Optional edge pulse on selected hero platforms only (perf-safe).
+  if (pulseEdge) {
+    scene.tweens.add({
+      targets: edge,
+      alpha: { from: PLATFORM_EDGE_ALPHA * 0.7, to: PLATFORM_EDGE_ALPHA },
+      duration: 1200 + Math.random() * 1600,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+      delay: Math.random() * 800,
+    })
+  }
 
   if (disappearing && trollManager) {
     trollManager.registerDisappearing(platform, edge, collapseDelay)
@@ -84,6 +100,15 @@ function addSpike(
   // Add glow effect
   const glow = scene.add.rectangle(x, y, w + 4, h + 4, SPIKE_COLOR, 0.15)
   glow.setDepth(-1)
+
+  scene.tweens.add({
+    targets: glow,
+    alpha: { from: 0.08, to: 0.24 },
+    duration: 740 + Math.random() * 500,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
 
   return spike
 }
@@ -312,6 +337,8 @@ export function buildVerticalSliceLevel(
 
   fakeVictoryRevealPlatforms.push(addHiddenPlatform(scene, solids, 900, 1160, 130, 18))
   fakeVictoryRevealPlatforms.push(addHiddenPlatform(scene, solids, 700, 1065, 120, 18))
+  fakeVictoryRevealPlatforms.push(addHiddenPlatform(scene, solids, 520, 985, 110, 18))
+  fakeVictoryRevealPlatforms.push(addHiddenPlatform(scene, solids, 400, 910, 110, 18))
   const rerouteSign = scene.add.text(870, 1115, '> NO EXIT. GO LEFT.', {
     fontFamily: 'JetBrains Mono, monospace',
     fontSize: '11px',
@@ -319,12 +346,36 @@ export function buildVerticalSliceLevel(
     align: 'center',
   }).setOrigin(0.5).setAlpha(0)
   fakeVictoryRevealSigns.push(rerouteSign)
+  const rerouteSign2 = scene.add.text(530, 955, '> ROUTE UNLOCKED', {
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: '11px',
+    color: '#ff6d00',
+    align: 'center',
+  }).setOrigin(0.5).setAlpha(0)
+  fakeVictoryRevealSigns.push(rerouteSign2)
 
   // FAKE VICTORY ZONE — triggers the troll
   addSign(scene, 1050, 1200, '> EXIT DETECTED', 0x00ff41)
   addSign(scene, 1050, 1215, '> ALMOST THERE!', 0x00ff41)
   const fakeVictoryZone = scene.add.zone(1050, 1200, 150, 80)
   scene.physics.add.existing(fakeVictoryZone, true)
+
+  // Hide upper sections before fake-victory trigger so the trap remains believable.
+  const upperWorldFog = scene.add.rectangle(
+    GAME_WIDTH / 2,
+    560,
+    GAME_WIDTH + 160,
+    1120,
+    0x060000,
+    0.98,
+  )
+  upperWorldFog.setDepth(18)
+  const upperWorldFogLabel = scene.add.text(1060, 1020, 'SIGNAL LOCKED // UNKNOWN ABOVE', {
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: '11px',
+    color: '#ff1744',
+  })
+  upperWorldFogLabel.setOrigin(1, 0.5).setAlpha(0.75).setDepth(19)
 
   // Real checkpoint 4
   const cp4 = scene.add.zone(200, 1560, 80, 80)
@@ -364,6 +415,12 @@ export function buildVerticalSliceLevel(
   scene.add.rectangle(300, 495, 6, 50, CHECKPOINT_COLOR, 0.7).setStrokeStyle(1, 0xffea00, 0.4)
 
   addPlatform(scene, solids, 550, 440, 100, 20)
+  addPlatform(scene, solids, 380, 360, 96, 18)
+  addSpike(scene, spikes, 470, 368, 34, 12)
+  addPlatform(scene, solids, 260, 300, 94, 18, trollManager, true, 340)
+  addPlatform(scene, solids, 420, 245, 86, 18)
+  addMovingSpike(scene, spikes, 640, 250, 40, 14, 220, 1400)
+  addPlatform(scene, solids, 760, 190, 92, 18)
 
   // ═══════════════════════════════════════════════════════
   // SECTION 6: FINALE (Y: 0–400)
@@ -417,6 +474,8 @@ export function buildVerticalSliceLevel(
     movingPlatforms,
     fakeVictoryRevealPlatforms,
     fakeVictoryRevealSigns,
+    upperWorldFog,
+    upperWorldFogLabel,
     fakeVictoryZone,
     fakeCrashZone,
     realEndZone,
@@ -441,7 +500,7 @@ function addBackgroundDecorations(scene: Phaser.Scene) {
   })
 
   // Scattered decorative signal noise.
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 24; i++) {
     const x = Phaser.Math.Between(50, GAME_WIDTH - 50)
     const y = Phaser.Math.Between(50, GAME_HEIGHT - 50)
     const size = Phaser.Math.Between(1, 3)

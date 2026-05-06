@@ -3,7 +3,7 @@
  * Manages disappearing platforms, fake events, and troll triggers
  */
 import Phaser from 'phaser'
-import { useGameUiStore } from '../../store/gameUiStore'
+import { useGameUiStore } from '../../store/gameUi/gameUiStore'
 import { audioManager } from './AudioManager'
 
 export type DisappearingPlatform = {
@@ -133,9 +133,11 @@ export class TrollManager {
     ui.setStatus('stable')
     ui.showVictoryOverlay()
     audioManager.playVictory()
+    audioManager.playTauntBeep()
 
     this.scene.time.delayedCall(1500, () => {
       audioManager.playGlitch()
+      audioManager.playTauntBeep()
       ui.hideVictoryOverlay()
       ui.setPrompt('just_kidding.exe')
       ui.setStatus('critical')
@@ -155,6 +157,7 @@ export class TrollManager {
     this.fakeCrashTriggered = true
 
     audioManager.playFakeCrash()
+    audioManager.playUiAlert('danger')
     const ui = useGameUiStore.getState()
     ui.showCrashOverlay()
 
@@ -173,11 +176,13 @@ export class TrollManager {
 
     const ui = useGameUiStore.getState()
     audioManager.playCheckpoint()
+    audioManager.playTauntBeep()
     ui.setPrompt('checkpoint_saved.tmp')
     ui.setStatus('stable')
 
     this.scene.time.delayedCall(900, () => {
       audioManager.playGlitch()
+      audioManager.playUiAlert('warning')
       ui.showCorruptionOverlay()
       ui.setPrompt('tmp file deleted. nice try.')
       ui.setStatus('warning')

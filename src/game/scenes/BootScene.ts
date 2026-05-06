@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { audioManager } from '../audio'
-import { useGameUiStore } from '../../store/gameUiStore'
+import { useGameUiStore } from '../../store/gameUi/gameUiStore'
 
 export class BootScene extends Phaser.Scene {
   private bootMessages = [

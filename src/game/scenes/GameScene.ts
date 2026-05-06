@@ -3,13 +3,13 @@
  * Integrates: movement, camera, particles, audio, traps, checkpoints, troll mechanics
  */
 import Phaser from 'phaser'
-import { GAME_HEIGHT, GAME_WIDTH, SPAWN_X, SPAWN_Y, SECTIONS, PLAYER_COLOR, PLAYER_STROKE_COLOR } from '../config'
+import { GAME_HEIGHT, GAME_WIDTH, SPAWN_X, SPAWN_Y, SECTIONS, PLAYER_COLOR, PLAYER_STROKE_COLOR } from '../core/config'
 import { buildVerticalSliceLevel, type MovingPlatform } from '../levels'
 import { MovementController } from '../systems/MovementController'
 import { ParticleManager, CameraEffects } from '../effects'
 import { TrollManager } from '../traps'
 import { audioManager } from '../audio'
-import { useGameUiStore } from '../../store/gameUiStore'
+import { useGameUiStore } from '../../store/gameUi/gameUiStore'
 
 export class GameScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Rectangle
@@ -26,6 +26,10 @@ export class GameScene extends Phaser.Scene {
   private progressUpdateTimer = 0
   private isDead = false
   private wallSlideDir = 0
+  private wallSparkCooldown = 0
+  private parallaxTimer = 0
+  private bgFarLayer: Phaser.GameObjects.Container | null = null
+  private bgNearLayer: Phaser.GameObjects.Container | null = null
 
   constructor() {
     super('GameScene')
@@ -38,6 +42,7 @@ export class GameScene extends Phaser.Scene {
     audioManager.startHeartbeat(60)
 
     this.cameras.main.setBackgroundColor('#080000')
+    this.createBackgroundLayers()
 
     // Physics world bounds
     this.physics.world.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT)
@@ -93,9 +98,17 @@ export class GameScene extends Phaser.Scene {
       if (!this.fakeVictoryResolved) {
         this.fakeVictoryResolved = true
         ;(level.fakeVictoryZone.body as Phaser.Physics.Arcade.StaticBody).enable = false
-        this.revealFakeVictoryRoute(level.fakeVictoryRevealPlatforms, level.fakeVictoryRevealSigns)
+        this.revealFakeVictoryRoute(
+          level.fakeVictoryRevealPlatforms,
+          level.fakeVictoryRevealSigns,
+          level.upperWorldFog,
+          level.upperWorldFogLabel,
+        )
       }
-      this.trollManager.triggerFakeVictory(() => this.killPlayer('FAKE VICTORY'))
+      this.trollManager.triggerFakeVictory(() => {
+        audioManager.playBetrayalStinger()
+        this.killPlayer('FAKE VICTORY')
+      })
     })
 
     // Fake crash trigger
@@ -142,6 +155,7 @@ export class GameScene extends Phaser.Scene {
 
     // ─── AMBIENT PARTICLES ────────────────────────────
     this.particles.createAmbientParticles()
+    this.particles.createPlayerTrail(this.player)
 
     // ─── UI INIT ──────────────────────────────────────
     const ui = useGameUiStore.getState()
@@ -154,6 +168,7 @@ export class GameScene extends Phaser.Scene {
     if (this.isDead) return
 
     const dt = delta / 1000
+    this.wallSparkCooldown -= delta
     const body = this.player.body as Phaser.Physics.Arcade.Body
 
     // Movement
@@ -168,12 +183,20 @@ export class GameScene extends Phaser.Scene {
 
     // Update player glow position
     this.playerGlow.setPosition(this.player.x, this.player.y)
+    this.playerGlow.setAlpha(0.06 + Math.min(Math.abs(body.velocity.y) / 1400, 0.22))
+    this.particles.setTrailIntensity(Math.abs(body.velocity.x) > 220 || Math.abs(body.velocity.y) > 300)
+    this.parallaxTimer -= delta
+    if (this.parallaxTimer <= 0) {
+      this.updateParallaxLayers()
+      this.parallaxTimer = 33
+    }
 
     // Wall slide particles
     if (this.wallSlideDir !== 0) {
       const sparkX = this.player.x + (this.wallSlideDir < 0 ? -12 : 12)
-      if (Math.random() > 0.6) {
+      if (this.wallSparkCooldown <= 0 && Math.random() > 0.45) {
         this.particles.emitWallSparks(sparkX, this.player.y, -this.wallSlideDir)
+        this.wallSparkCooldown = 90
       }
     }
 
@@ -220,18 +243,56 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private createBackgroundLayers() {
+    const far = this.add.container(0, 0)
+    const near = this.add.container(0, 0)
+
+    for (let i = 0; i < 8; i++) {
+      const y = 380 + i * (GAME_HEIGHT / 10)
+      const orb = this.add.ellipse(240 + (i % 2) * 720, y, 520, 300, 0xff1744, 0.045)
+      orb.setBlendMode(Phaser.BlendModes.ADD)
+      far.add(orb)
+    }
+
+    for (let i = 0; i < 14; i++) {
+      const x = Phaser.Math.Between(80, GAME_WIDTH - 80)
+      const y = Phaser.Math.Between(120, GAME_HEIGHT - 80)
+      const glow = this.add.ellipse(x, y, Phaser.Math.Between(80, 220), Phaser.Math.Between(30, 120), 0xff6d00, 0.05)
+      glow.setBlendMode(Phaser.BlendModes.ADD)
+      near.add(glow)
+    }
+
+    far.setDepth(-30)
+    near.setDepth(-25)
+    this.bgFarLayer = far
+    this.bgNearLayer = near
+  }
+
+  private updateParallaxLayers() {
+    if (!this.bgFarLayer || !this.bgNearLayer) return
+    const camY = this.cameras.main.scrollY
+    this.bgFarLayer.y = camY * 0.12
+    this.bgNearLayer.y = camY * 0.2
+  }
+
   private updateProgressUi(deltaSeconds: number) {
     this.progressUpdateTimer -= deltaSeconds
     if (this.progressUpdateTimer > 0) return
-    this.progressUpdateTimer = 0.12
+    this.progressUpdateTimer = 0.2
 
     const progress = Phaser.Math.Clamp(1 - this.player.y / GAME_HEIGHT, 0, 1)
-    useGameUiStore.getState().setProgress(progress)
+    const ui = useGameUiStore.getState()
+    ui.setProgress(progress)
+    if (this.currentSection === 'BETRAYAL') {
+      ui.setPlayerPosition(this.player.x, this.player.y)
+    }
   }
 
   private revealFakeVictoryRoute(
     platforms: { platform: Phaser.GameObjects.Rectangle; edge: Phaser.GameObjects.Rectangle }[],
     signs: Phaser.GameObjects.Text[],
+    upperFog: Phaser.GameObjects.Rectangle,
+    upperFogLabel: Phaser.GameObjects.Text,
   ) {
     platforms.forEach(({ platform, edge }, index) => {
       ;(platform.body as Phaser.Physics.Arcade.StaticBody).enable = true
@@ -254,6 +315,17 @@ export class GameScene extends Phaser.Scene {
         delay: 140 + index * 120,
         ease: 'Quad.easeOut',
       })
+    })
+
+    this.tweens.add({
+      targets: [upperFog, upperFogLabel],
+      alpha: 0,
+      duration: 520,
+      ease: 'Cubic.easeOut',
+      onComplete: () => {
+        upperFog.setVisible(false)
+        upperFogLabel.setVisible(false)
+      },
     })
 
     const ui = useGameUiStore.getState()
@@ -279,6 +351,21 @@ export class GameScene extends Phaser.Scene {
       ui.setSection(newSection)
       this.cameraFx.sectionTransition()
 
+      if (newSection !== 'TRUST PHASE') {
+        audioManager.playSectionTransition()
+      }
+      
+      if (newSection === 'FINALE') {
+        audioManager.startShepardTone()
+        audioManager.stopSequencer()
+      } else {
+        audioManager.stopShepardTone()
+        if (newSection === 'TENSION') audioManager.startSequencer(130)
+        if (newSection === 'DECEPTION') audioManager.startSequencer(145)
+        if (newSection === 'BETRAYAL') audioManager.startSequencer(160)
+        if (newSection === 'PRECISION') audioManager.startSequencer(180)
+      }
+
       // Update prompts based on section
       switch (newSection) {
         case 'TRUST PHASE':
@@ -296,14 +383,17 @@ export class GameScene extends Phaser.Scene {
         case 'BETRAYAL':
           ui.setPrompt('hope_is_a_bug.exe')
           ui.setStatus('critical')
+          audioManager.playBetrayalStinger()
           break
         case 'PRECISION':
           ui.setPrompt('no_margin_for_error.sys')
           ui.setStatus('critical')
+          audioManager.playUiAlert('danger')
           break
         case 'FINALE':
           ui.setPrompt('end_of_line.exe')
           ui.setStatus('critical')
+          audioManager.playUiAlert('warning')
           break
       }
     }
@@ -317,6 +407,7 @@ export class GameScene extends Phaser.Scene {
     ui.setCheckpoint(index)
     this.spawnPoint.copy(this.checkpointPositions[index])
     audioManager.playCheckpoint()
+    audioManager.playUiAlert('system')
     this.particles.emitCheckpointGlow(this.checkpointPositions[index].x, this.checkpointPositions[index].y)
     ui.setPrompt(`checkpoint_${index + 1}.saved`)
   }
@@ -371,6 +462,7 @@ export class GameScene extends Phaser.Scene {
     this.player.setFillStyle(PLAYER_COLOR, 1)
     this.player.setStrokeStyle(2, PLAYER_STROKE_COLOR, 1)
     this.player.setScale(1, 1)
+    audioManager.playRespawnWarp()
 
     this.isDead = false
   }

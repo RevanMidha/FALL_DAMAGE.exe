@@ -1,10 +1,10 @@
 import Phaser from 'phaser'
-import { BootScene } from './scenes/BootScene'
-import { MenuScene } from './scenes/MenuScene'
-import { GameScene } from './scenes/GameScene'
-import { DeathScene } from './scenes/DeathScene'
-import { EndingScene } from './scenes/EndingScene'
-import { UIScene } from './scenes/UIScene'
+import { BootScene } from '../scenes/BootScene'
+import { MenuScene } from '../scenes/MenuScene'
+import { GameScene } from '../scenes/GameScene'
+import { DeathScene } from '../scenes/DeathScene'
+import { EndingScene } from '../scenes/EndingScene'
+import { UIScene } from '../scenes/UIScene'
 
 // Canvas size matches viewport, NOT world size
 // The world is 1280×4200 but the camera shows a viewport-sized window into it
@@ -37,6 +37,13 @@ export class GameManager {
       render: {
         pixelArt: false,
         antialias: true,
+        antialiasGL: true,
+        roundPixels: false,
+        powerPreference: 'high-performance',
+      },
+      fps: {
+        target: 60,
+        forceSetTimeOut: false,
       },
     })
   }

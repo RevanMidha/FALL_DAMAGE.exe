@@ -7,6 +7,8 @@ type GameUiState = {
   // Core state
   deaths: number
   progress: number
+  playerX: number
+  playerY: number
   sectionName: string
   prompt: string
   fakeStatus: FakeSystemStatus
@@ -24,6 +26,7 @@ type GameUiState = {
   // Actions
   setPrompt: (prompt: string) => void
   setProgress: (progress: number) => void
+  setPlayerPosition: (x: number, y: number) => void
   setSection: (sectionName: string) => void
   pushDeath: () => void
   setStatus: (status: FakeSystemStatus) => void
@@ -42,6 +45,8 @@ type GameUiState = {
 export const useGameUiStore = create<GameUiState>((set) => ({
   deaths: 0,
   progress: 0,
+  playerX: 0,
+  playerY: 0,
   sectionName: 'BOOTSTRAP',
   prompt: 'RUN: fall_damage.exe',
   fakeStatus: 'stable',
@@ -54,6 +59,7 @@ export const useGameUiStore = create<GameUiState>((set) => ({
 
   setPrompt: (prompt) => set({ prompt }),
   setProgress: (progress) => set({ progress }),
+  setPlayerPosition: (playerX, playerY) => set({ playerX, playerY }),
   setSection: (sectionName) => set({ sectionName }),
   pushDeath: () => set((state) => ({ deaths: state.deaths + 1 })),
   setStatus: (fakeStatus) => set({ fakeStatus }),
@@ -72,6 +78,8 @@ export const useGameUiStore = create<GameUiState>((set) => ({
   resetGame: () => set({
     deaths: 0,
     progress: 0,
+    playerX: 0,
+    playerY: 0,
     sectionName: 'BOOTSTRAP',
     prompt: 'RUN: fall_damage.exe',
     fakeStatus: 'stable',

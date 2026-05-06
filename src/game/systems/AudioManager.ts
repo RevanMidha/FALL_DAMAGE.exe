@@ -229,6 +229,220 @@ class AudioManagerSingleton {
     }
   }
 
+  // ─── SEQUENCER ───────────────────────────────────────────
+  private seqInterval: number | null = null
+  private seqStep = 0
+
+  startSequencer(tempo = 140) {
+    this.stopSequencer()
+    const ctx = this.ensureCtx()
+    const intervalMs = (60000 / tempo) / 4 // 16th notes
+    
+    // Minor pentatonic bass line
+    const sequence = [41.20, 0, 49.00, 0, 41.20, 0, 55.00, 49.00, 41.20, 41.20, 0, 61.74, 0, 49.00, 55.00, 0]
+    
+    this.seqInterval = window.setInterval(() => {
+      const freq = sequence[this.seqStep % sequence.length]
+      this.seqStep++
+      
+      if (freq > 0) {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        const filter = ctx.createBiquadFilter()
+        
+        osc.type = 'square'
+        osc.frequency.value = freq
+        
+        filter.type = 'lowpass'
+        filter.frequency.setValueAtTime(800, ctx.currentTime)
+        filter.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1)
+        
+        gain.gain.setValueAtTime(0.12, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15)
+        
+        osc.connect(filter).connect(gain).connect(this.masterGain)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.15)
+      }
+    }, intervalMs)
+  }
+
+  stopSequencer() {
+    if (this.seqInterval !== null) {
+      clearInterval(this.seqInterval)
+      this.seqInterval = null
+    }
+  }
+
+  // ─── SHEPARD TONE (FINALE PHASE TENSION) ─────────────────
+  private shepardOscs: { osc: OscillatorNode, gain: GainNode }[] = []
+  private shepardInterval: number | null = null
+
+  startShepardTone() {
+    this.stopShepardTone()
+    const ctx = this.ensureCtx()
+    
+    // Create 4 overlapping oscillators an octave apart
+    const baseFreqs = [55, 110, 220, 440]
+    
+    baseFreqs.forEach((freq) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      
+      // We will modulate these over time
+      osc.frequency.value = freq
+      gain.gain.value = 0
+      
+      osc.connect(gain).connect(this.masterGain)
+      osc.start()
+      this.shepardOscs.push({ osc, gain })
+    })
+
+    let t = 0
+    this.shepardInterval = window.setInterval(() => {
+      t += 0.05
+      this.shepardOscs.forEach((obj, _i) => {
+        // Shepard tone formula: frequency rises exponentially, amplitude is a bell curve over log(f)
+        const cycle = (t + (_i / this.shepardOscs.length)) % 1
+        const f = 55 * Math.pow(2, cycle * 4) // Sweep across 4 octaves
+        
+        // Bell curve envelope peaking in the middle of the range
+        const amplitude = 0.08 * Math.exp(-Math.pow(cycle - 0.5, 2) / 0.05)
+        
+        obj.osc.frequency.setTargetAtTime(f, ctx.currentTime, 0.05)
+        obj.gain.gain.setTargetAtTime(amplitude, ctx.currentTime, 0.05)
+      })
+    }, 50)
+  }
+
+  stopShepardTone() {
+    if (this.shepardInterval !== null) {
+      clearInterval(this.shepardInterval)
+      this.shepardInterval = null
+    }
+    this.shepardOscs.forEach(obj => {
+      obj.osc.stop()
+      obj.osc.disconnect()
+      obj.gain.disconnect()
+    })
+    this.shepardOscs = []
+  }
+
+  // ─── FOOTSTEP ────────────────────────────────────────────
+  playFootstep() {
+    const ctx = this.ensureCtx()
+    const bufferSize = ctx.sampleRate * 0.02 // Very short
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+    const data = buffer.getChannelData(0)
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2)
+    }
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'bandpass'
+    filter.frequency.value = 300 + Math.random() * 200 // Slight variation
+    filter.Q.value = 1
+    
+    const gain = ctx.createGain()
+    gain.gain.value = 0.04
+    
+    source.connect(filter).connect(gain).connect(this.masterGain)
+    source.start()
+  }
+
+  // ─── BETRAYAL STINGER ────────────────────────────────────
+  playBetrayalStinger() {
+    const ctx = this.ensureCtx()
+    
+    // Massive pitch drop
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(800, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 1.5)
+    
+    gain.gain.setValueAtTime(0.4, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0)
+    
+    osc.connect(gain).connect(this.masterGain)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 2.0)
+    
+    // Layered chaos
+    this.playNoiseHit(0.2, 1.0)
+    setTimeout(() => this.playGlitch(), 200)
+    setTimeout(() => this.playGlitch(), 500)
+  }
+
+  // ─── SECTION TRANSITION RISER ────────────────────────────
+  playSectionTransition() {
+    const ctx = this.ensureCtx()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(50, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 2.0)
+    
+    gain.gain.setValueAtTime(0.01, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 1.8)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.1)
+    
+    osc.connect(gain).connect(this.masterGain)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 2.1)
+  }
+
+  playUiAlert(tone: 'danger' | 'warning' | 'system' = 'warning') {
+    const ctx = this.ensureCtx()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = tone === 'danger' ? 'square' : 'triangle'
+    const base = tone === 'danger' ? 420 : tone === 'warning' ? 620 : 760
+    osc.frequency.setValueAtTime(base, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(base * 1.65, ctx.currentTime + 0.07)
+    gain.gain.setValueAtTime(tone === 'danger' ? 0.09 : 0.06, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12)
+    osc.connect(gain).connect(this.masterGain)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.12)
+  }
+
+  playRespawnWarp() {
+    const ctx = this.ensureCtx()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(180, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 0.08)
+    osc.frequency.exponentialRampToValueAtTime(260, ctx.currentTime + 0.18)
+    gain.gain.setValueAtTime(0.12, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
+    osc.connect(gain).connect(this.masterGain)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.2)
+  }
+
+  playTauntBeep() {
+    const ctx = this.ensureCtx()
+    const notes = [900, 740, 980]
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const t = ctx.currentTime + idx * 0.04
+      osc.type = 'square'
+      osc.frequency.setValueAtTime(freq, t)
+      gain.gain.setValueAtTime(0.03, t)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045)
+      osc.connect(gain).connect(this.masterGain)
+      osc.start(t)
+      osc.stop(t + 0.045)
+    })
+  }
+
   // ─── HEARTBEAT ───────────────────────────────────────────
   startHeartbeat(bpm = 60) {
     this.stopHeartbeat()

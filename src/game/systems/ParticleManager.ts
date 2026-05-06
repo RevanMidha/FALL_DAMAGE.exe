@@ -3,13 +3,18 @@
  * Creates textures procedurally (no asset files needed)
  */
 import Phaser from 'phaser'
+import { GAME_HEIGHT, GAME_WIDTH } from '../core/config'
 
 export class ParticleManager {
   private scene: Phaser.Scene
+  private playerTrailEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null
+  private landingDustEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null
+  private wallSparkEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene
     this.createTextures()
+    this.createPooledEmitters()
   }
 
   /** Generate tiny particle textures at runtime */
@@ -44,19 +49,8 @@ export class ParticleManager {
 
   /** Dust burst on landing */
   emitLandingDust(x: number, y: number) {
-    const emitter = this.scene.add.particles(x, y, 'particle', {
-      speed: { min: 30, max: 80 },
-      angle: { min: -160, max: -20 },
-      scale: { start: 1, end: 0 },
-      alpha: { start: 0.6, end: 0 },
-      tint: 0xff1744,
-      lifespan: 350,
-      quantity: 8,
-      gravityY: 120,
-      emitting: false,
-    })
-    emitter.explode(8)
-    this.scene.time.delayedCall(500, () => emitter.destroy())
+    if (!this.landingDustEmitter) return
+    this.landingDustEmitter.explode(8, x, y)
   }
 
   /** Red explosion on death */
@@ -78,18 +72,8 @@ export class ParticleManager {
 
   /** Sparks while wall-sliding */
   emitWallSparks(x: number, y: number, direction: number) {
-    const emitter = this.scene.add.particles(x, y, 'particle', {
-      speedX: { min: direction * 20, max: direction * 60 },
-      speedY: { min: -30, max: 30 },
-      scale: { start: 0.8, end: 0 },
-      alpha: { start: 0.8, end: 0 },
-      tint: [0xff1744, 0xff6d00],
-      lifespan: 200,
-      quantity: 2,
-      emitting: false,
-    })
-    emitter.explode(2)
-    this.scene.time.delayedCall(300, () => emitter.destroy())
+    if (!this.wallSparkEmitter) return
+    this.wallSparkEmitter.explode(1, x + direction * 3, y)
   }
 
   /** Checkpoint activation glow ring */
@@ -128,9 +112,9 @@ export class ParticleManager {
   /** Create ambient floating particles for atmosphere */
   createAmbientParticles() {
     // These float slowly upward across the entire game world
-    const emitter = this.scene.add.particles(640, 4200, 'dot', {
-      x: { min: 0, max: 1280 },
-      y: { min: 0, max: 4200 },
+    const emitter = this.scene.add.particles(GAME_WIDTH / 2, GAME_HEIGHT, 'dot', {
+      x: { min: 0, max: GAME_WIDTH },
+      y: { min: 0, max: GAME_HEIGHT },
       speedY: { min: -15, max: -5 },
       speedX: { min: -5, max: 5 },
       scale: { min: 0.3, max: 0.8 },
@@ -143,5 +127,56 @@ export class ParticleManager {
     emitter.setScrollFactor(0.5) // Parallax effect
     emitter.setDepth(-5)
     return emitter
+  }
+
+  createPlayerTrail(target: Phaser.GameObjects.GameObject) {
+    const manager = this.scene.add.particles(0, 0, 'glow_particle', {
+      speed: { min: 4, max: 18 },
+      scale: { start: 0.5, end: 0 },
+      alpha: { start: 0.2, end: 0 },
+      tint: [0xffea00, 0xff6d00, 0xff1744],
+      lifespan: 260,
+      frequency: 28,
+      quantity: 1,
+      blendMode: 'ADD',
+    })
+    manager.setDepth(3)
+    manager.startFollow(target as unknown as Phaser.Types.Math.Vector2Like, 0, 4, false)
+    this.playerTrailEmitter = manager
+    return manager
+  }
+
+  setTrailIntensity(isFast: boolean) {
+    if (!this.playerTrailEmitter) return
+    this.playerTrailEmitter.emitting = isFast
+    this.playerTrailEmitter.setFrequency(isFast ? 18 : 34)
+    this.playerTrailEmitter.setParticleSpeed(isFast ? 30 : 18, isFast ? 40 : 24)
+  }
+
+  private createPooledEmitters() {
+    this.landingDustEmitter = this.scene.add.particles(0, 0, 'particle', {
+      speed: { min: 30, max: 80 },
+      angle: { min: -160, max: -20 },
+      scale: { start: 1, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      tint: 0xff1744,
+      lifespan: 350,
+      quantity: 8,
+      gravityY: 120,
+      emitting: false,
+    })
+    this.landingDustEmitter.setDepth(2)
+
+    this.wallSparkEmitter = this.scene.add.particles(0, 0, 'particle', {
+      speedX: { min: -60, max: 60 },
+      speedY: { min: -30, max: 30 },
+      scale: { start: 0.8, end: 0 },
+      alpha: { start: 0.8, end: 0 },
+      tint: [0xff1744, 0xff6d00],
+      lifespan: 160,
+      quantity: 1,
+      emitting: false,
+    })
+    this.wallSparkEmitter.setDepth(2)
   }
 }
