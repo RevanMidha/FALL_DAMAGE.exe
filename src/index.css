@@ -31,9 +31,9 @@ body,
 
 body {
   background:
-    radial-gradient(circle at 50% 12%, rgba(255, 23, 68, 0.09), transparent 28%),
-    radial-gradient(circle at 50% 100%, rgba(255, 109, 0, 0.08), transparent 40%),
-    linear-gradient(180deg, #120000 0%, #080000 42%, #030000 100%);
+    radial-gradient(circle at 50% 12%, rgba(255, 23, 68, 0.16), transparent 34%),
+    radial-gradient(circle at 50% 100%, rgba(255, 109, 0, 0.14), transparent 46%),
+    linear-gradient(180deg, #1a0202 0%, #100101 44%, #070000 100%);
 }
 
 .alarm-sweep {
@@ -54,8 +54,8 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.24) 2px,
-    rgba(0, 0, 0, 0.24) 4px
+    rgba(0, 0, 0, 0.14) 2px,
+    rgba(0, 0, 0, 0.14) 4px
   );
   mix-blend-mode: multiply;
 }
@@ -65,7 +65,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 9998;
-  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.52) 100%);
+  background: radial-gradient(ellipse at center, transparent 66%, rgba(0, 0, 0, 0.34) 100%);
 }
 
 .hud-frame {
@@ -73,8 +73,8 @@ body {
   position: fixed;
   inset: 10px;
   z-index: 9993;
-  border: 1px solid rgba(255, 23, 68, 0.08);
-  box-shadow: inset 0 0 45px rgba(255, 23, 68, 0.02);
+  border: 1px solid rgba(255, 23, 68, 0.14);
+  box-shadow: inset 0 0 35px rgba(255, 23, 68, 0.03);
 }
 
 .corner-bracket {

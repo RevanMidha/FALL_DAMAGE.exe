@@ -4,12 +4,11 @@
  */
 import Phaser from 'phaser'
 import { GAME_HEIGHT, GAME_WIDTH, SPAWN_X, SPAWN_Y, SECTIONS, PLAYER_COLOR, PLAYER_STROKE_COLOR } from '../config'
-import { buildVerticalSliceLevel, type MovingPlatform } from '../systems/LevelFactory'
+import { buildVerticalSliceLevel, type MovingPlatform } from '../levels'
 import { MovementController } from '../systems/MovementController'
-import { ParticleManager } from '../systems/ParticleManager'
-import { CameraEffects } from '../systems/CameraEffects'
-import { TrollManager } from '../systems/TrollManager'
-import { audioManager } from '../systems/AudioManager'
+import { ParticleManager, CameraEffects } from '../effects'
+import { TrollManager } from '../traps'
+import { audioManager } from '../audio'
 import { useGameUiStore } from '../../store/gameUiStore'
 
 export class GameScene extends Phaser.Scene {

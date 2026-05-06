@@ -178,7 +178,7 @@ function App() {
   ]
 
   return (
-    <main className="relative h-screen w-screen overflow-hidden bg-[#080000] text-white">
+    <main className="relative h-screen w-screen overflow-hidden bg-[#140202] text-white">
       <div ref={hostRef} className="h-full w-full" />
 
       <div className="alarm-sweep" />
@@ -201,7 +201,7 @@ function App() {
             exit={{ opacity: 0, y: -12 }}
             className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-3 sm:px-4"
           >
-            <div className="w-[min(860px,calc(100vw-1.25rem))] rounded-lg border border-[#ff1744]/30 bg-[rgba(10,0,0,0.78)] px-4 py-7 text-center font-mono shadow-[0_0_70px_rgba(255,23,68,0.14)] backdrop-blur-md sm:px-6">
+            <div className="w-[min(860px,calc(100vw-1.25rem))] rounded-lg border border-[#ff1744]/35 bg-[rgba(24,2,2,0.78)] px-4 py-7 text-center font-mono shadow-[0_0_70px_rgba(255,23,68,0.14)] backdrop-blur-md sm:px-6">
               <div className="mb-3 text-[11px] uppercase tracking-[0.6em] text-[#ff6d00]/80">hostile ascent protocol</div>
               <h1
                 className="mx-auto max-w-full whitespace-nowrap text-[clamp(1.15rem,4.75vw,3.95rem)] font-black leading-none tracking-[0.04em] text-[#ffea00] text-glow-orange"
@@ -243,7 +243,7 @@ function App() {
           <motion.div
             animate={{ opacity: fakeStatus === 'critical' ? [0.75, 1, 0.75] : 1 }}
             transition={{ duration: 1.4, repeat: fakeStatus === 'critical' ? Number.POSITIVE_INFINITY : 0 }}
-            className="pointer-events-none absolute left-1/2 top-4 z-20 hidden -translate-x-1/2 md:flex items-center gap-3 rounded-md border border-[#ff1744]/30 bg-[rgba(18,0,0,0.82)] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.35em] text-[#ffea00]/80 backdrop-blur-md"
+            className="pointer-events-none absolute left-1/2 top-4 z-20 hidden -translate-x-1/2 md:flex items-center gap-3 rounded-md border border-[#ff1744]/30 bg-[rgba(30,4,4,0.82)] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.35em] text-[#ffea00]/85 backdrop-blur-md"
           >
             <span>unsafe mode</span>
             <span className="text-white/20">|</span>
@@ -256,7 +256,7 @@ function App() {
             className="pointer-events-none absolute left-4 top-4 z-20 flex items-center gap-3 rounded-md border px-4 py-2.5 font-mono text-xs backdrop-blur-md"
             style={{
               borderColor: fakeStatus === 'critical' ? 'rgba(255,23,68,0.55)' : 'rgba(255,109,0,0.35)',
-              background: 'rgba(8,0,0,0.84)',
+              background: 'rgba(24,2,2,0.82)',
               boxShadow: `0 0 20px ${fakeStatus === 'critical' ? 'rgba(255,23,68,0.25)' : 'rgba(255,109,0,0.16)'}`,
             }}
           >
@@ -271,7 +271,7 @@ function App() {
             <motion.aside
               animate={{ x: glitchPulse ? [0, -6, 7, -3, 0] : 0 }}
               transition={{ duration: 0.22 }}
-              className="rounded-md border border-[#ff6d00]/25 bg-[rgba(8,0,0,0.84)] p-3 font-mono text-xs backdrop-blur-md"
+              className="rounded-md border border-[#ff6d00]/25 bg-[rgba(24,2,2,0.82)] p-3 font-mono text-xs backdrop-blur-md"
               style={{ boxShadow: '0 0 20px rgba(255,109,0,0.12)' }}
             >
               <div className="mb-2 flex items-center justify-between text-[#ff6d00]/65">
@@ -289,7 +289,7 @@ function App() {
               </div>
             </motion.aside>
 
-            <aside className="hidden w-full rounded-md border border-[#ff1744]/20 bg-[rgba(8,0,0,0.78)] p-3 font-mono text-[10px] text-white/60 backdrop-blur-md md:block">
+            <aside className="hidden w-full rounded-md border border-[#ff1744]/20 bg-[rgba(24,2,2,0.78)] p-3 font-mono text-[10px] text-white/65 backdrop-blur-md md:block">
               <div className="mb-3 flex items-center justify-between">
                 <span className="tracking-[0.3em] text-[#ff6d00]/80">TELEMETRY</span>
                 <span className="text-[#ffea00]">{checkpointLabel}</span>
@@ -324,7 +324,7 @@ function App() {
             </aside>
           </div>
 
-          <aside className="pointer-events-none absolute left-4 top-24 bottom-24 z-20 hidden w-40 rounded-md border border-[#ff1744]/20 bg-[rgba(8,0,0,0.72)] p-3 font-mono text-[10px] text-white/55 backdrop-blur-md xl:flex flex-col">
+          <aside className="pointer-events-none absolute left-4 top-24 bottom-24 z-20 hidden w-40 rounded-md border border-[#ff1744]/20 bg-[rgba(24,2,2,0.72)] p-3 font-mono text-[10px] text-white/62 backdrop-blur-md xl:flex flex-col">
         <div className="mb-3 flex items-center justify-between">
           <span className="tracking-[0.3em] text-[#ff6d00]/80">TOWER</span>
           <span className="text-[#ffea00]">{ascentPercent}%</span>
@@ -364,7 +364,7 @@ function App() {
           <motion.div
             initial={{ opacity: 0, scale: 0.86 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="pointer-events-none absolute bottom-20 left-1/2 z-20 flex w-[min(540px,calc(100vw-2rem))] -translate-x-1/2 items-center gap-4 rounded-lg border-2 border-[#ff1744]/40 bg-[rgba(8,0,0,0.9)] px-5 py-3 font-mono backdrop-blur-md"
+            className="pointer-events-none absolute bottom-20 left-1/2 z-20 flex w-[min(540px,calc(100vw-2rem))] -translate-x-1/2 items-center gap-4 rounded-lg border-2 border-[#ff1744]/40 bg-[rgba(24,2,2,0.88)] px-5 py-3 font-mono backdrop-blur-md"
             style={{ boxShadow: '0 0 30px rgba(255,23,68,0.25), inset 0 0 20px rgba(255,23,68,0.05)' }}
           >
             <Skull size={28} className="shrink-0 text-[#ff1744]" weight="fill" />
@@ -398,7 +398,7 @@ function App() {
         )}
           </AnimatePresence>
 
-          <aside className="pointer-events-none absolute bottom-20 right-4 z-20 hidden w-[320px] rounded-md border border-[#ff6d00]/25 bg-[rgba(8,0,0,0.82)] p-3 font-mono text-[10px] text-white/55 backdrop-blur-md lg:block">
+          <aside className="pointer-events-none absolute bottom-20 right-4 z-20 hidden w-[320px] rounded-md border border-[#ff6d00]/25 bg-[rgba(24,2,2,0.82)] p-3 font-mono text-[10px] text-white/62 backdrop-blur-md lg:block">
         <div className="mb-3 flex items-center justify-between">
           <span className="tracking-[0.3em] text-[#ff6d00]/80">INCIDENT FEED</span>
           <span className="text-[#ff1744]">LIVE</span>
@@ -424,7 +424,7 @@ function App() {
             initial={{ opacity: 0, y: -18, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12 }}
-            className="pointer-events-none absolute left-1/2 top-20 z-30 w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 rounded-md border bg-[rgba(10,0,0,0.92)] px-4 py-3 font-mono backdrop-blur-md"
+            className="pointer-events-none absolute left-1/2 top-20 z-30 w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 rounded-md border bg-[rgba(24,2,2,0.9)] px-4 py-3 font-mono backdrop-blur-md"
             style={{
               borderColor:
                 toast.tone === 'danger'
@@ -448,7 +448,7 @@ function App() {
         )}
           </AnimatePresence>
 
-          <footer className="pointer-events-none absolute bottom-4 left-1/2 z-20 max-w-[calc(100vw-1rem)] -translate-x-1/2 rounded-md border border-white/10 bg-[rgba(8,0,0,0.78)] px-4 py-2 text-center font-mono text-[10px] leading-5 text-white/55 backdrop-blur-sm">
+          <footer className="pointer-events-none absolute bottom-4 left-1/2 z-20 max-w-[calc(100vw-1rem)] -translate-x-1/2 rounded-md border border-white/15 bg-[rgba(24,2,2,0.78)] px-4 py-2 text-center font-mono text-[10px] leading-5 text-white/65 backdrop-blur-sm">
         <div className="flex flex-wrap items-center justify-center gap-2">
           <span className={`rounded border px-2 py-0.5 ${keycapClass('warning')}`}>A/D</span>
           <span>move</span>

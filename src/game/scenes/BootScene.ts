@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { audioManager } from '../systems/AudioManager'
+import { audioManager } from '../audio'
 import { useGameUiStore } from '../../store/gameUiStore'
 
 export class BootScene extends Phaser.Scene {
