@@ -28,6 +28,8 @@ export type LevelBuildOutput = {
   checkpointZones: Phaser.GameObjects.Zone[]
   fakeCheckpointZones: Phaser.GameObjects.Zone[]
   movingPlatforms: MovingPlatform[]
+  fakeVictoryRevealPlatforms: { platform: Phaser.GameObjects.Rectangle; edge: Phaser.GameObjects.Rectangle }[]
+  fakeVictoryRevealSigns: Phaser.GameObjects.Text[]
   fakeVictoryZone: Phaser.GameObjects.Zone
   fakeCrashZone: Phaser.GameObjects.Zone
   realEndZone: Phaser.GameObjects.Zone
@@ -52,6 +54,20 @@ function addPlatform(
   }
 
   return { platform, edge }
+}
+
+function addHiddenPlatform(
+  scene: Phaser.Scene,
+  solids: Phaser.Physics.Arcade.StaticGroup,
+  x: number, y: number, w: number, h: number,
+) {
+  const hidden = addPlatform(scene, solids, x, y, w, h)
+  hidden.platform.setVisible(false)
+  hidden.edge.setVisible(false)
+  hidden.platform.setAlpha(0)
+  hidden.edge.setAlpha(0)
+  ;(hidden.platform.body as Phaser.Physics.Arcade.StaticBody).enable = false
+  return hidden
 }
 
 /** Helper to add spike zone */
@@ -166,6 +182,8 @@ export function buildVerticalSliceLevel(
   const checkpointZones: Phaser.GameObjects.Zone[] = []
   const fakeCheckpointZones: Phaser.GameObjects.Zone[] = []
   const movingPlatforms: MovingPlatform[] = []
+  const fakeVictoryRevealPlatforms: { platform: Phaser.GameObjects.Rectangle; edge: Phaser.GameObjects.Rectangle }[] = []
+  const fakeVictoryRevealSigns: Phaser.GameObjects.Text[] = []
 
   // ─── WORLD WALLS (invisible boundaries left/right) ─────
   addWall(scene, solids, -10, GAME_HEIGHT / 2, 20, GAME_HEIGHT)
@@ -292,6 +310,16 @@ export function buildVerticalSliceLevel(
   addMovingSpike(scene, spikes, 940, 1365, 46, 16, -260, 1500)
   addPlatform(scene, solids, 1050, 1240, 180, 22)
 
+  fakeVictoryRevealPlatforms.push(addHiddenPlatform(scene, solids, 900, 1160, 130, 18))
+  fakeVictoryRevealPlatforms.push(addHiddenPlatform(scene, solids, 700, 1065, 120, 18))
+  const rerouteSign = scene.add.text(870, 1115, '> NO EXIT. GO LEFT.', {
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: '11px',
+    color: '#ffea00',
+    align: 'center',
+  }).setOrigin(0.5).setAlpha(0)
+  fakeVictoryRevealSigns.push(rerouteSign)
+
   // FAKE VICTORY ZONE — triggers the troll
   addSign(scene, 1050, 1200, '> EXIT DETECTED', 0x00ff41)
   addSign(scene, 1050, 1215, '> ALMOST THERE!', 0x00ff41)
@@ -387,6 +415,8 @@ export function buildVerticalSliceLevel(
     checkpointZones,
     fakeCheckpointZones,
     movingPlatforms,
+    fakeVictoryRevealPlatforms,
+    fakeVictoryRevealSigns,
     fakeVictoryZone,
     fakeCrashZone,
     realEndZone,

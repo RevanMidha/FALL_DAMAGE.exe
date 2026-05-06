@@ -178,9 +178,14 @@ export class TrollManager {
 
     this.scene.time.delayedCall(900, () => {
       audioManager.playGlitch()
+      ui.showCorruptionOverlay()
       ui.setPrompt('tmp file deleted. nice try.')
       ui.setStatus('warning')
       ui.pulseGlitch()
+
+      this.scene.time.delayedCall(1100, () => {
+        ui.hideCorruptionOverlay()
+      })
     })
   }
 

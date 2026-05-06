@@ -1,6 +1,9 @@
 import Phaser from 'phaser'
 import { BootScene } from './scenes/BootScene'
+import { MenuScene } from './scenes/MenuScene'
 import { GameScene } from './scenes/GameScene'
+import { DeathScene } from './scenes/DeathScene'
+import { EndingScene } from './scenes/EndingScene'
 import { UIScene } from './scenes/UIScene'
 
 // Canvas size matches viewport, NOT world size
@@ -30,7 +33,7 @@ export class GameManager {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
-      scene: [BootScene, GameScene, UIScene],
+      scene: [BootScene, MenuScene, GameScene, UIScene, DeathScene, EndingScene],
       render: {
         pixelArt: false,
         antialias: true,

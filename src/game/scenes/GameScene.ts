@@ -23,6 +23,7 @@ export class GameScene extends Phaser.Scene {
   private currentSection = ''
   private checkpointPositions: Phaser.Math.Vector2[] = []
   private movingPlatforms: MovingPlatform[] = []
+  private fakeVictoryResolved = false
   private progressUpdateTimer = 0
   private isDead = false
   private wallSlideDir = 0
@@ -90,6 +91,11 @@ export class GameScene extends Phaser.Scene {
 
     // Fake victory trigger
     this.physics.add.overlap(this.player, level.fakeVictoryZone, () => {
+      if (!this.fakeVictoryResolved) {
+        this.fakeVictoryResolved = true
+        ;(level.fakeVictoryZone.body as Phaser.Physics.Arcade.StaticBody).enable = false
+        this.revealFakeVictoryRoute(level.fakeVictoryRevealPlatforms, level.fakeVictoryRevealSigns)
+      }
       this.trollManager.triggerFakeVictory(() => this.killPlayer('FAKE VICTORY'))
     })
 
@@ -222,6 +228,40 @@ export class GameScene extends Phaser.Scene {
 
     const progress = Phaser.Math.Clamp(1 - this.player.y / GAME_HEIGHT, 0, 1)
     useGameUiStore.getState().setProgress(progress)
+  }
+
+  private revealFakeVictoryRoute(
+    platforms: { platform: Phaser.GameObjects.Rectangle; edge: Phaser.GameObjects.Rectangle }[],
+    signs: Phaser.GameObjects.Text[],
+  ) {
+    platforms.forEach(({ platform, edge }, index) => {
+      ;(platform.body as Phaser.Physics.Arcade.StaticBody).enable = true
+      platform.setVisible(true)
+      edge.setVisible(true)
+      this.tweens.add({
+        targets: [platform, edge],
+        alpha: 1,
+        duration: 220,
+        delay: index * 120,
+      })
+    })
+
+    signs.forEach((sign, index) => {
+      this.tweens.add({
+        targets: sign,
+        alpha: 0.82,
+        y: sign.y - 6,
+        duration: 260,
+        delay: 140 + index * 120,
+        ease: 'Quad.easeOut',
+      })
+    })
+
+    const ui = useGameUiStore.getState()
+    this.time.delayedCall(1900, () => {
+      ui.setPrompt('victory_flag_revoked.route_left.exe')
+      ui.setStatus('warning')
+    })
   }
 
   /** Track which section the player is in and update UI */

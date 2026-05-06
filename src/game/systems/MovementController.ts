@@ -25,8 +25,11 @@ export class MovementController {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys
   private keys: ControlKeys
   private coyoteTimer = 0
+  private wallCoyoteTimer = 0
   private jumpBufferTimer = 0
   private wallJumpLockTimer = 0
+  private wallJumpDirection = 0
+  private lastWallDirection = 0
   private wasOnFloor = false
   private wasWallSliding = false
   private lastFallSpeed = 0
@@ -62,6 +65,15 @@ export class MovementController {
     this.lastFallSpeed = Math.max(0, this.body.velocity.y)
 
     this.coyoteTimer = onFloor ? movementConfig.coyoteTimeMs : Math.max(0, this.coyoteTimer - dtMs)
+    if (touchingLeft) {
+      this.wallCoyoteTimer = movementConfig.wallCoyoteTimeMs
+      this.lastWallDirection = -1
+    } else if (touchingRight) {
+      this.wallCoyoteTimer = movementConfig.wallCoyoteTimeMs
+      this.lastWallDirection = 1
+    } else {
+      this.wallCoyoteTimer = Math.max(0, this.wallCoyoteTimer - dtMs)
+    }
     this.jumpBufferTimer = this.getJumpJustPressed()
       ? movementConfig.jumpBufferMs
       : Math.max(0, this.jumpBufferTimer - dtMs)
@@ -88,7 +100,7 @@ export class MovementController {
     this.wasWallSliding = isWallSliding
 
     const canGroundJump = this.coyoteTimer > 0
-    const canWallJump = !onFloor && touchingWall
+    const canWallJump = !onFloor && this.wallCoyoteTimer > 0 && this.lastWallDirection !== 0
     if (this.jumpBufferTimer > 0 && (canGroundJump || canWallJump)) {
       this.jumpBufferTimer = 0
       this.coyoteTimer = 0
@@ -96,11 +108,14 @@ export class MovementController {
       this.onJump?.()
 
       if (canWallJump) {
-        const awayFromWall = touchingLeft ? 1 : -1
+        const awayFromWall = -this.lastWallDirection
         this.wallJumpLockTimer = movementConfig.wallJumpLockMs
+        this.wallJumpDirection = awayFromWall
+        this.wallCoyoteTimer = 0
         this.body.setVelocityX(awayFromWall * movementConfig.wallJumpHorizontal)
         this.body.setVelocityY(-movementConfig.wallJumpVertical)
       } else {
+        this.wallJumpDirection = 0
         this.body.setVelocityY(-movementConfig.jumpVelocity)
       }
     }
@@ -113,7 +128,9 @@ export class MovementController {
   }
 
   private applyHorizontalMovement(moveInput: number, onFloor: boolean, deltaSeconds: number) {
-    if (this.wallJumpLockTimer > 0 && !onFloor) return
+    if (onFloor) {
+      this.wallJumpDirection = 0
+    }
 
     const targetVelocity = moveInput * movementConfig.maxRunSpeed
     const hasInput = moveInput !== 0
@@ -121,7 +138,12 @@ export class MovementController {
       ? hasInput ? movementConfig.acceleration : movementConfig.deceleration
       : hasInput ? movementConfig.airAcceleration : movementConfig.airDeceleration
 
-    const nextVelocity = this.moveTowards(this.body.velocity.x, targetVelocity, acceleration * deltaSeconds)
+    const correctedTargetVelocity =
+      this.wallJumpLockTimer > 0 && !onFloor && moveInput !== 0 && Math.sign(moveInput) !== this.wallJumpDirection
+        ? 0
+        : targetVelocity
+
+    const nextVelocity = this.moveTowards(this.body.velocity.x, correctedTargetVelocity, acceleration * deltaSeconds)
     this.body.setVelocityX(nextVelocity)
     this.body.setMaxVelocity(movementConfig.maxRunSpeed, movementConfig.maxFallSpeed)
   }

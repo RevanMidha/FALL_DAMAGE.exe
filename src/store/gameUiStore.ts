@@ -16,6 +16,7 @@ type GameUiState = {
   // Troll overlays
   fakeCrashVisible: boolean
   fakeVictoryVisible: boolean
+  fakeCorruptionVisible: boolean
 
   // Checkpoint
   lastCheckpointIndex: number
@@ -32,6 +33,8 @@ type GameUiState = {
   hideCrashOverlay: () => void
   showVictoryOverlay: () => void
   hideVictoryOverlay: () => void
+  showCorruptionOverlay: () => void
+  hideCorruptionOverlay: () => void
   setCheckpoint: (index: number) => void
   resetGame: () => void
 }
@@ -46,6 +49,7 @@ export const useGameUiStore = create<GameUiState>((set) => ({
   gamePhase: 'boot',
   fakeCrashVisible: false,
   fakeVictoryVisible: false,
+  fakeCorruptionVisible: false,
   lastCheckpointIndex: -1,
 
   setPrompt: (prompt) => set({ prompt }),
@@ -62,6 +66,8 @@ export const useGameUiStore = create<GameUiState>((set) => ({
   hideCrashOverlay: () => set({ fakeCrashVisible: false }),
   showVictoryOverlay: () => set({ fakeVictoryVisible: true }),
   hideVictoryOverlay: () => set({ fakeVictoryVisible: false }),
+  showCorruptionOverlay: () => set({ fakeCorruptionVisible: true }),
+  hideCorruptionOverlay: () => set({ fakeCorruptionVisible: false }),
   setCheckpoint: (lastCheckpointIndex) => set({ lastCheckpointIndex }),
   resetGame: () => set({
     deaths: 0,
@@ -73,6 +79,7 @@ export const useGameUiStore = create<GameUiState>((set) => ({
     gamePhase: 'boot',
     fakeCrashVisible: false,
     fakeVictoryVisible: false,
+    fakeCorruptionVisible: false,
     lastCheckpointIndex: -1,
   }),
 }))

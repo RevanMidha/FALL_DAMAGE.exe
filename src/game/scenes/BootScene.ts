@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { audioManager } from '../systems/AudioManager'
+import { useGameUiStore } from '../../store/gameUiStore'
 
 export class BootScene extends Phaser.Scene {
   private bootMessages = [
@@ -20,6 +21,7 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor('#080000')
+    useGameUiStore.getState().setGamePhase('boot')
 
     this.input.keyboard!.once('keydown-SPACE', () => {
       audioManager.init()
@@ -66,8 +68,8 @@ export class BootScene extends Phaser.Scene {
         audioManager.playClick()
         this.cameras.main.flash(300, 255, 109, 0)
         this.time.delayedCall(400, () => {
-          this.scene.start('GameScene')
-          this.scene.launch('UIScene')
+          useGameUiStore.getState().setGamePhase('menu')
+          this.scene.start('MenuScene')
         })
       })
     })

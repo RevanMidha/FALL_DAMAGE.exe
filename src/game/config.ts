@@ -19,10 +19,11 @@ export const movementConfig = {
   maxFallSpeed: 1180,
   coyoteTimeMs: 120,
   jumpBufferMs: 140,
-  wallSlideSpeed: 115,
-  wallJumpHorizontal: 370,
-  wallJumpVertical: 535,
-  wallJumpLockMs: 130,
+  wallCoyoteTimeMs: 120,
+  wallSlideSpeed: 88,
+  wallJumpHorizontal: 260,
+  wallJumpVertical: 590,
+  wallJumpLockMs: 80,
 }
 
 // Visual config: warning lights, blood-hot hazards, fake-safe lies.
